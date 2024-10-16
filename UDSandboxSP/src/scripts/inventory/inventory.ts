@@ -103,15 +103,15 @@ export function InventoryUI() {
         inventoryList.id = 'inventory-list';
         inventoryUI.appendChild(inventoryList);
 
-        const fetchButton = document.createElement('button');
-        fetchButton.innerText = 'Fetch Inventory';
-        fetchButton.style.display = 'block';
-        fetchButton.style.margin = '10px auto';
-        fetchButton.addEventListener('click', async () => {
-            inventory.fetchInventory();
-        });
+        //const fetchButton = document.createElement('button');
+        //fetchButton.innerText = 'Fetch Inventory';
+        //fetchButton.style.display = 'block';
+        //fetchButton.style.margin = '10px auto';
+        //fetchButton.addEventListener('click', async () => {
+            //inventory.fetchInventory();
+        //});
 
-        inventoryUI.appendChild(fetchButton);
+        //inventoryUI.appendChild(fetchButton);
 
         document.body.appendChild(inventoryUI);
         inventory.refreshUI();

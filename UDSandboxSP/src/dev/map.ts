@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { scene } from "../main";
 
 export var world: CANNON.World;
@@ -28,7 +29,7 @@ export function setupPhysics() {
     characterBody = new CANNON.Body({
         mass: 1,
         shape: new CANNON.Sphere(0.5),
-        position: new CANNON.Vec3(0, 1, 0),
+        position: new CANNON.Vec3(0, 0, 0), // Character Spawn Position
         material: characterMaterial,
         linearDamping: 0.9,
         angularDamping: 0.9,
@@ -58,24 +59,25 @@ export function setupPhysics() {
 }
 
 /* -------------------------PHYSICS-END------------------------- */
+/* -------------------------MAP-START------------------------- */
 
 export function loadMap() {
-    addGround();
     addLights();
     addCube();
+    LoadHelicopter();
 }
 
-function addGround() {
-    const geometry = new THREE.PlaneGeometry(20, 20);
-    const material = new THREE.MeshPhongMaterial({
-        color: 0x808080,
-        side: THREE.DoubleSide,
-    });
-    const plane = new THREE.Mesh(geometry, material);
-    plane.rotation.x = -Math.PI / 2;
-    plane.position.y = -0.01;
-    scene.add(plane);
-}
+//function addGround() {
+//    const geometry = new THREE.PlaneGeometry(20, 20);
+//    const material = new THREE.MeshPhongMaterial({
+//        color: 0x808080,
+//        side: THREE.DoubleSide,
+//    });
+//    const plane = new THREE.Mesh(geometry, material);
+//    plane.rotation.x = -Math.PI / 2;
+//    plane.position.y = -0.01;
+//    scene.add(plane);
+//}
 
 function addLights() {
     const ambientLight = new THREE.AmbientLight(0x404040);
@@ -96,9 +98,37 @@ function addCube() {
 
     cubeBody = new CANNON.Body({
         mass: 1,
-        position: new CANNON.Vec3(2, 0.5, 0),
+        position: new CANNON.Vec3(2, 1, 0.5),
         material: new CANNON.Material("cubeMaterial"),
     });
-    cubeBody.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)));
+    cubeBody.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 1, 0.5)));
     world.addBody(cubeBody);
+}
+
+
+export var helicopterMixer: THREE.AnimationMixer;
+let helicopter;
+function LoadHelicopter() {
+    const loader = new GLTFLoader();
+    loader.load('src/assets/models/[Vehicles]/[Aircraft]/helicopter1.glb', (gltf) => {
+        const model = gltf.scene;
+        const scale = 0.8;
+        model.scale.set(scale, scale, scale);
+        helicopter = model;
+        model.position.y = 0.5;
+        scene.add(model);
+        helicopterMixer = new THREE.AnimationMixer(model);
+        const clips = gltf.animations;
+        if (clips && clips.length > 0) {
+            console.log('Helicopter Animations:', clips.map(clip => clip.name));
+            const clip = THREE.AnimationClip.findByName(clips, 'Rotation');
+            if (clip) {
+                const action = helicopterMixer.clipAction(clip);
+                action.setLoop(THREE.LoopRepeat, Infinity);
+                action.play();
+            } else {
+                console.error('animation not found');
+            }
+        }
+    });
 }

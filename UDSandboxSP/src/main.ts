@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { setupPhysics, loadMap, world, characterBody, cubeBody } from './dev/map';
+import { setupPhysics, loadMap, world, characterBody, cubeBody, helicopterMixer } from './dev/map';
 import { Interact } from './main/functions';
 import { Vector2, Raycaster } from "three";
 import { stats, DevGUI } from './dev/dev';
@@ -10,7 +10,7 @@ export var scene: THREE.Scene;
 export var camera: THREE.PerspectiveCamera;
 let renderer: THREE.WebGLRenderer;
 export var gltfModel: THREE.Group | null = null;
-const cubeSpeed = 0.03;
+const cubeSpeed = 0.02;
 const keysPressed: { [key: string]: boolean } = {};
 const gravity = -0.02;
 const rotationSpeed = 0.005;
@@ -20,13 +20,14 @@ let isInAir = false;
 
 let isRightMouseDown = false;
 let previousMouseX = 0;
-let cameraDistance = 10;
+let cameraDistance = 4;
 
 let directionalLight: THREE.DirectionalLight;
 
-export let mixer: THREE.AnimationMixer;
+let mixer: THREE.AnimationMixer;
 let idleAction: THREE.AnimationAction;
-let walkAction: THREE.AnimationAction;
+let walkFAction: THREE.AnimationAction;
+let walkBAction: THREE.AnimationAction;
 let jumpAction: THREE.AnimationAction;
 let activeAction: THREE.AnimationAction;
 let previousAction: THREE.AnimationAction
@@ -36,7 +37,7 @@ export const mouse = new Vector2();
 
 function Init() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xa0a0a0);
+  scene.background = new THREE.Color(0x292930);
 
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
   renderer = new THREE.WebGLRenderer();
@@ -53,7 +54,7 @@ function Init() {
   directionalLight.shadow.camera.far = 50;
   scene.add(directionalLight);
 
-  camera.position.set(0, 5, cameraDistance);
+  camera.position.set(0, 0, cameraDistance);
   camera.lookAt(0, 0, 0);
 
   window.addEventListener('keydown', onKeyDown);
@@ -66,7 +67,7 @@ function Init() {
   setupPhysics();
   loadMap();
   DevGUI();
-  loadGLTFModel({ x: 0, y: 0, z: 0 });
+  loadGLTFModel();
   
   /* Interactions */
   window.addEventListener('mousemove', (event) => {
@@ -129,14 +130,13 @@ function onMouseMove(event: MouseEvent) {
   }
 }
 
-function loadGLTFModel(position: { x: number, y: number, z: number }) {
+function loadGLTFModel() {
   const loader = new GLTFLoader();
   loader.load(
-    'src/assets/models/udcharacter.glb',
+    'src/assets/models/[Characters]/character_agent/character_agent.glb',
     (gltf) => {
       gltfModel = gltf.scene;
-      gltfModel.position.set(position.x, position.y, position.z);
-      const scale = 0.5;
+      const scale = 0.8;
       gltfModel.scale.set(scale, scale, scale);
       gltfModel.castShadow = true;
       scene.add(gltfModel);
@@ -151,10 +151,11 @@ function loadGLTFModel(position: { x: number, y: number, z: number }) {
       }
 
       idleAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'idle') || animations[0]);
-      walkAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'walk') || animations[1]);
-      jumpAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'jump') || animations[2]);
+      walkFAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'walkf') || animations[1]);
+      walkBAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'walkb') || animations[2]);
+      jumpAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'jump') || animations[3]);
       
-      if (!idleAction || !walkAction || !jumpAction) {
+      if (!idleAction || !walkFAction || !walkBAction || !jumpAction) {
         console.error('No animations found');
       }
 
@@ -167,7 +168,6 @@ function loadGLTFModel(position: { x: number, y: number, z: number }) {
     }
   );
 }
-
 
 function switchAnimation(toAction: THREE.AnimationAction) {
   if (activeAction !== toAction) {
@@ -195,16 +195,15 @@ function animate() {
     if (keysPressed['s']) {
       movement.z -= cubeSpeed;
       isMoving = true;
-    }
-    if (keysPressed['w']) {
+      switchAnimation(walkBAction);
+    } else if (keysPressed['w']) {
       movement.z += cubeSpeed;
       isMoving = true;
-    }
-    if (keysPressed['d']) {
+      switchAnimation(walkFAction);
+    } else if (keysPressed['d']) {
       movement.x -= cubeSpeed;
       isMoving = true;
-    }
-    if (keysPressed['a']) {
+    } else if (keysPressed['a']) {
       movement.x += cubeSpeed;
       isMoving = true;
     }
@@ -213,7 +212,7 @@ function animate() {
       if (isInAir) {
         verticalVelocity += gravity;
         characterBody.position.y += verticalVelocity;
-    
+
         if (characterBody.position.y <= 0.5) {
           characterBody.position.y = 0.5;
           isInAir = false;
@@ -222,9 +221,7 @@ function animate() {
           switchAnimation(idleAction);
         }
       }
-    } else if (isMoving) {
-      switchAnimation(walkAction);
-    } else {
+    } else if (!isMoving) {
       switchAnimation(idleAction);
     }
 
@@ -254,6 +251,10 @@ function animate() {
     cube.quaternion.copy(cubeBody.quaternion as any);
   }
 
+  if (helicopterMixer) {
+    helicopterMixer.update(deltaTime);
+  }
+
   stats.update();
   updateCameraPosition();
   renderer.render(scene, camera);
@@ -261,10 +262,14 @@ function animate() {
 
 export function updateCameraPosition() {
   if (gltfModel) {
+    const offsetDistance = cameraDistance;
+    const cameraOffsetX = offsetDistance * Math.sin(gltfModel.rotation.y);
+    const cameraOffsetZ = offsetDistance * Math.cos(gltfModel.rotation.y);
+
     camera.position.set(
-      gltfModel.position.x + cameraDistance * Math.sin(gltfModel.rotation.y),
-      gltfModel.position.y + 5,
-      gltfModel.position.z + cameraDistance * Math.cos(gltfModel.rotation.y)
+      gltfModel.position.x - cameraOffsetX,
+      gltfModel.position.y + 1.5,
+      gltfModel.position.z - cameraOffsetZ
     );
     camera.lookAt(gltfModel.position);
 
