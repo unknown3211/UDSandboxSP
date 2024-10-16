@@ -1,0 +1,30 @@
+{
+  "name": "udfps",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/dat.gui": "^0.7.13",
+    "@types/three": "^0.166.0",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4",
+    "vite": "^5.3.3"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d": "^0.14.0",
+    "@tweenjs/tween.js": "^25.0.0",
+    "cannon-es": "^0.20.0",
+    "cannon-es-debugger": "^1.0.0",
+    "dat.gui": "^0.7.9",
+    "socket.io-client": "^4.7.5",
+    "three": "^0.166.1",
+    "three-fbx-loader": "^1.0.3",
+    "vite-plugin-wasm": "^3.3.0"
+  }
+}
