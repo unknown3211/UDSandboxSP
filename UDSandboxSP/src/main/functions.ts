@@ -1,7 +1,6 @@
 import { NotifyUI, MessageType } from '../ui/notifications';
 import { ProgressbarUI } from '../ui/progressbar';
-import { raycaster, mouse, camera, scene } from '../main';
-/*import { CubeClicked } from '../scripts/cubetest'*/
+import { raycaster, mouse, camera, scene, gltfModel } from '../main';
 import { MineCopper } from '../scripts/mining/mining';
 
 export function Notify(title: string, message: string, duration: number, type: MessageType) {
@@ -28,6 +27,13 @@ export function lerp(start: number, end: number, amount: number): number {
 
 export function Delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function GetPlayerPosition() {
+    if (gltfModel) {
+        const position = { x: gltfModel.position.x, y: gltfModel.position.y, z: gltfModel.position.z };
+        return position;
+    }
 }
 
 export function Interact() { /* ALWAYS MAKE THIS FUNCTION LAST BECAUSE IT WILL HAVE MULTIPLE INTERACTIONS */

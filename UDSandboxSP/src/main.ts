@@ -3,7 +3,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { setupPhysics, loadMap, world, characterBody, cubeBody } from './dev/map';
 import { Interact } from './main/functions';
 import { Vector2, Raycaster } from "three";
-import { stats } from './dev/dev';
+import { stats, DevGUI } from './dev/dev';
 import HotbarUI from './ui/hotbar';
 
 export var scene: THREE.Scene;
@@ -57,6 +57,7 @@ function Init() {
 
   setupPhysics();
   loadMap();
+  DevGUI();
   loadGLTFModel({ x: 0, y: 0, z: 0 });
   
   /* Interactions */
@@ -75,7 +76,6 @@ function Init() {
 
 function onKeyDown(event: KeyboardEvent) {
   keysPressed[event.key.toLowerCase()] = true;
-
   if (event.code === 'Space' && !isJumping && characterBody.position.y <= 0.5) {
     isJumping = true;
     verticalVelocity = 0.3;
