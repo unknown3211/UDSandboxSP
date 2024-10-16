@@ -27,7 +27,7 @@ export class Inventory {
             console.log(`Adding item: ${item.name} (x${quantity})`);
             this.updateInventoryList();
         } else {
-            console.log(`Item with id ${itemId} not found`);
+            console.error(`Item with id ${itemId} not found`);
         }
     }
 
@@ -42,7 +42,7 @@ export class Inventory {
             console.log(`Removing item: ${itemId} (x${quantity})`);
             this.updateInventoryList();
         } else {
-            console.log(`Item with id ${itemId} not found in inventory`);
+            console.error(`Item with id ${itemId} not found in inventory`);
         }
     }
 

@@ -6,7 +6,9 @@
 [] = not done
 
 [] - Save System (JSON Save System, Local Storage ?)
-[] - New Character Model, Movement System + Clothing Menu
+[x] - New Character Model
+[/] - New Movement System
+[] - Clothing Menu
 [] - Map
 [] - Camera Toggle (FP + TP)
 [] - Proper Physics (Ammo.js or rapier)
