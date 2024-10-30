@@ -14,6 +14,7 @@ const cubeSpeed = 0.02;
 const keysPressed: { [key: string]: boolean } = {};
 const gravity = -0.02;
 const rotationSpeed = 0.005;
+const animationSpeed = 0.5;
 let verticalVelocity = 0;
 let isJumping = false;
 let isInAir = false;
@@ -154,6 +155,11 @@ function loadGLTFModel() {
       walkFAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'walkf') || animations[1]);
       walkBAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'walkb') || animations[2]);
       jumpAction = mixer.clipAction(animations.find(clip => clip.name.toLowerCase() === 'jump') || animations[3]);
+
+      idleAction.timeScale = animationSpeed;
+      walkFAction.timeScale = animationSpeed;
+      walkBAction.timeScale = animationSpeed;
+      jumpAction.timeScale = animationSpeed;
       
       if (!idleAction || !walkFAction || !walkBAction || !jumpAction) {
         console.error('No animations found');
